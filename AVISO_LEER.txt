@@ -1,5 +1,5 @@
 Este es el repositorio de la aplicación misBilletes (Sistema Gestor de Finanzas Personales).
 Si están viendo este archivo, es porque copiaron exitosamente el repositorio de Git que creé.
 Recuerden que, para trabajar en este repositorio, van a tener que crear sus propias carpetas 
-donde hacer sus cambios, esto para no trabajar directamente sobre la rama main.
+donde hacer sus cambios, esto para no trabajar directamente sobre la rama main/master.
 De igual manera, deben corroborar que los cambios que realicen los añadan al repositorio.
