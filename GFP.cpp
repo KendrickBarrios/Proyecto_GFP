@@ -8,6 +8,6 @@
 
 int main () {
     setlocale(LC_ALL, "spanish");
-    crearperfil();
+    modificarperfil();
     return 0;
 }

@@ -1,9 +1,44 @@
 #include <iostream>
 #include <fstream>
+#include <limits>
+#include <cmath>
 #include <cstring>
 #include <string>
 #include <regex>
 
+// funcion que valida que no se introduzcan datos que no correspondan al tipo int
+void validar (int *n, int a = 0) {
+	double temp;
+	while (true) {
+		if (std::cin >> temp && std::fmod(temp, 1) == 0 && (a == 0 || temp > 0)) {
+            break;		
+		} else {
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			std::cout << "\nEl número ingresado no debe contener decimales, letras ni otros caracteres especiales."
+			<< "\nPor favor ingrese un número según lo especificado: ";
+		}
+	}
+	*n = temp;
+}
+
+// funcion que valida que no se introduzcan datos que no correspondan al tipo double
+void validar (double *p) {
+	double temp;
+	while (true) {
+		if (std::cin >> temp) {
+			break;
+		} else {
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			std::cout << "\nEl número ingresado no debe contener letras ni otros caracteres especiales."
+			<< "\nPor favor ingrese un número según lo especificado: ";
+		}
+	}
+	*p = temp;
+}
+
+// funcion que encripta y desencripta strings
 std::string encriptar (std::string str, int modo) {
     int i;
     char aux [str.length() + 1];
@@ -13,22 +48,39 @@ std::string encriptar (std::string str, int modo) {
     // cifrado
     if (modo == 1) {
         for (i = 0; i < str.length(); i++) {
-            if (aux[i] > 58) {
+            if (aux[i] >= 65 && aux[i] <= 73) {
+                aux[i] -= 16;
+                cripto += ' ';
+                cripto += aux[i];
+            } else if ((aux[i] > 73 && aux[i] < 84) || aux[i] > 90) {
                 aux[i] -= 26;
+                cripto += aux[i];
+            } else if (aux[i] >= 84 && aux[i] <= 90) {
+                aux[i] -= 35;
+                cripto += ',';
                 cripto += aux[i];
             } else {
                 aux[i] -= 1;
-                cripto += ' ';
+                cripto += '-';
                 cripto += aux[i];
             }
         }
+
     // descifrado
     } else if (modo == 2) {
         for (i = 0; i < str.length(); i++) {
             if (aux[i] == ' ') {
                 i++;
-                aux[i] += 1;
+                aux[i] += 16;
                 cripto += aux[i];
+            } else if (aux[i] == ',') {
+                i++;
+                aux[i] += 35;
+                cripto += aux[i];
+            } else if (aux[i] == '-') {
+                i++;
+                aux[i] += 1;
+                cripto += 26;
             } else {
                 aux[i] += 26;
                 cripto += aux[i];
@@ -124,12 +176,6 @@ void crearperfil () {
     // creacion del archivo csv asociado al perfil
     user += ".csv";
     archivo.open(user, std::ios::out);
-    std::cout << "\n\n" << archivo.is_open() << '\n';
-    system("pause");
-    if (!archivo.is_open()) {
-        std::cerr << "Failed to open the file: " << std::strerror(errno) << std::endl;
-        return;
-    }
     if (archivo.is_open()) {
         user.erase(user.end() - 4, user.end());
         archivo.clear();  
@@ -149,7 +195,7 @@ void modificarperfil() {
     do {
         i = 0;
         j = 1;
-        archivo.seekg(0, archivo.beg);
+        archivo.seekg(0, std::ios::beg);
         system("cls");
         std::cout << "(2) Modificar perfil\n"
         << "\nPerfiles existentes:\n";
@@ -162,6 +208,8 @@ void modificarperfil() {
             i++;
         }
         archivo.clear();
+        archivo.seekg(0, std::ios::beg);
+        std::cout << "\nIngrese el numero del perfil que desea modificar: ";
         system("pause");
     } while (pase == false);
 }
