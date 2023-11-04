@@ -98,25 +98,22 @@ std::string encriptar (std::string str, int modo) {
 
 // funcion que permite validar el nombre de usuario ingresado
 int validarUser (std::string user) {
-    std::fstream file;
-    std::streampos inicio, fin;
-    std::streamoff tamano;
+    std::fstream archivo;
+    std::streampos tamano;
     std::string perfil;
     int coincidencia = 0;
     
     // validacion de nombre de usuario unico y permitido
     if (std::regex_match(user, patronUser)) {
-        file.open("perfiles.txt", std::ios::in);
-        if (file.is_open()) {
-            inicio = file.tellg();
-            file.seekg(0, std::ios::end);
-            fin = file.tellg();
-            tamano = fin - inicio;
-            file.seekg(0, std::ios::beg);
+        archivo.open("perfiles.txt", std::ios::in);
+        if (archivo.is_open()) {
+            archivo.seekg(0, std::ios::end);
+            tamano = archivo.tellg();
+            archivo.seekg(0, std::ios::beg);
             if (tamano == 0) {
                 coincidencia = 1;
             } else {
-                while (std::getline(file, perfil)) {
+                while (std::getline(archivo, perfil)) {
                     perfil = encriptar(perfil, 2);
                     coincidencia = (user.compare(perfil));
                     if (coincidencia == 0) {
@@ -127,8 +124,8 @@ int validarUser (std::string user) {
                     }
                 }
             }
-            file.clear();
-            file.close();
+            archivo.clear();
+            archivo.close();
         }
     } else {
         std::cout << "\nEl nombre de usuario ingresado no cumple con los requisitos.\n\n";
@@ -152,14 +149,14 @@ void validarPassword (std::string password, std::string password2, bool *pase) {
     }
 }
 
-// funcion que permite crear un nuevo perfil con un nombre unico
+// funcion que permite crear un nuevo perfil con un nombre unico y contrasena
 void crearperfil () {
     bool pase = false;
     std::fstream archivo;
     std::string user, perfil, password, password2; 
     int coincidencia = 0;
     
-    // lectura y validacion de nombre de usuario y password
+    // lectura y validacion de nombre de usuario
     do {
         system("cls");
         std::cout << "(1) Crear Perfil\n"
@@ -185,7 +182,7 @@ void crearperfil () {
 
     } while (pase == false);
 
-    // creacion / actualizacion del archivo de perfiles
+    // actualizacion del archivo de perfiles
     user = encriptar(user, 1);
     password = encriptar(password, 1);
     archivo.open("perfiles.txt", std::ios::out | std::ios::app);
@@ -213,8 +210,7 @@ void modificarperfil() {
     std::string linea, user, password;
     std::vector<std::string> users;
     std::vector<std::string> passwords;
-    std::streampos inicio, fin;
-    std::streamoff tamano;
+    std::streampos tamano;
     int i, j, indice, op, coincidencia;
     bool pase = false;
     
@@ -226,10 +222,8 @@ void modificarperfil() {
         system("cls");
         std::cout << "(2) Modificar perfil\n";
         // obtencion de usuarios y contrasenas
-        inicio = archivo.tellg();
         archivo.seekg(0, std::ios::end);
-        fin = archivo.tellg();
-        tamano = fin - inicio;
+        tamano = archivo.tellg();
         archivo.seekg(0, std::ios::beg);
         if (tamano > 0) {
             std::cout << "\nPerfiles existentes:\n";
@@ -270,7 +264,8 @@ void modificarperfil() {
                     << "(2) Modificar la contrasena\n"
                     << "(-1) Volver al menu principal\n";
                     validar(&op);
-                    if (op == 1) {
+
+                    if (op == 1) { // modificacion de nombre de usuario
                         std::cout << "\nIngrese el nuevo nombre de usuario (o -1 para volver al menu de modificacion): ";
                         std::getline(std::cin >> std::ws, user);
                         if (user == "-1") {
@@ -283,10 +278,8 @@ void modificarperfil() {
                                 archivo.open(linea, std::ios::in);
                                 linea = encriptar(user, 1) + ".csv";
                                 archivo2.open(linea, std::ios::out);
-                                inicio = archivo.tellg();
                                 archivo.seekg(0, std::ios::end);
-                                fin = archivo.tellg();
-                                tamano = fin - inicio;
+                                tamano = archivo.tellg();
                                 archivo.seekg(0, std::ios::beg);
                                 if (tamano > 0) {
                                     while (std::getline(archivo, linea)) {
@@ -320,7 +313,8 @@ void modificarperfil() {
                             }
                         }
                         break;
-                    } else if (op == 2) {
+                        
+                    } else if (op == 2) { // modificacion de contrasena
                         std::cout << "\nIngrese la nueva contrasena (o -1 para volver al menu de modificacion): ";
                         std::getline(std::cin >> std::ws, password);
                         if (password == "-1") {
@@ -360,6 +354,138 @@ void modificarperfil() {
                 system("pause");
             }
         }
-
     } while (pase == false);
+}
+
+std::string accederperfil () {
+    std::fstream archivo;
+    std::streampos tamano;
+    std::string linea;
+    std::vector <std::string> users;
+    std::vector <std::string> passwords;
+    int i, indice;
+    
+    archivo.open("perfiles.txt", std::ios::in);
+    archivo.seekg(0, std::ios::end);
+    tamano = archivo.tellg();
+    archivo.seekg(0, std::ios::beg);
+    if (tamano == 0) {
+            std::cout << "\nAun no se ha creado ningun perfil. Volviendo al menu principal\n";
+            archivo.clear();
+            archivo.close();
+            system("pause");
+            return "-1";
+    } else {
+        while (std::getline(archivo, linea)) {
+                if (!linea.empty()) {
+                    i++;
+                    linea = encriptar(linea, 2);
+                    users.push_back(linea);
+                    std::getline(archivo, linea);
+                    passwords.push_back(linea);
+                }
+        }
+        archivo.clear();
+        archivo.close();
+        do {
+            system("cls");
+            std::cout << "(3) Acceder a perfil\n";
+            std::cout << "\nPerfiles existentes:\n";
+            for (i = 1; i <= users.size(); i++) {
+                std::cout << i << " - " << users[i - 1] << '\n';
+            }
+            std::cout << "\nIngrese el numero del perfil al que desea acceder (o -1 para volver al menu principal): ";
+            validar(&indice);
+            if (indice == -1) {
+                return "-1";
+            } else if (indice > 0 && indice <= users.size()) {
+                std::cout << "\nIngrese la contrasena del perfil " << users[indice - 1] << ": ";
+                std::getline(std::cin >> std::ws, linea);
+                if (encriptar(linea, 1) == passwords[indice - 1]) {
+                    std::cout << "\nAcceso correcto. Presentando menu de perfil.\n";
+                    system("pause");
+                    return encriptar(users[indice - 1], 1);
+                } else {
+                    std::cout << "\nLa contrasena ingresada no es correcta.\n";
+                    system("pause");
+                }
+            } else {
+                std::cout << "\nPor favor, elija un numero valido.\n";
+                system("pause");
+            } 
+        } while (true);
+    }
+}
+
+void eliminarperfil () {
+    std::fstream archivo, archivo2;
+    std::streampos tamano;
+    std::string linea;
+    std::vector <std::string> users;
+    std::vector <std::string> passwords;
+    int i = 0, j, indice;
+
+    archivo.open("perfiles.txt", std::ios::in);
+    archivo.seekg(0, std::ios::end);
+    tamano = archivo.tellg();
+    archivo.seekg(0, std::ios::beg);
+    if (tamano == 0) {
+            std::cout << "\nAun no se ha creado ningun perfil. Volviendo al menu principal\n";
+            archivo.clear();
+            archivo.close();
+            system("pause");
+            return;
+    } else {
+        while (std::getline(archivo, linea)) {
+                if (!linea.empty()) {
+                    i++;
+                    users.push_back(encriptar(linea, 2));
+                    std::getline(archivo, linea);
+                    passwords.push_back(linea);
+                }
+        }
+        archivo.clear();
+        archivo.close();
+        do {
+            system("cls");
+            std::cout << "(4) Eliminar perfil\n";
+            std::cout << "\nPerfiles existentes:\n";
+            for (j = 1; j <= users.size(); j++) {
+                std::cout << j << " - " << users[j - 1] << '\n';
+            }
+            std::cout << "\nIngrese el numero del perfil que desea eliminar (o -1 para volver al menu principal): ";
+            validar(&indice);
+            if (indice == -1) {
+                return;
+            } else if (indice > 0 && indice <= users.size()) {
+                std::cout << "\nIngrese la contrasena del perfil " << users[indice - 1] << ": ";
+                std::getline(std::cin >> std::ws, linea);
+                if (encriptar(linea, 1) == passwords[indice - 1]) {
+                    linea = encriptar(users[indice - 1], 1) + ".csv";
+                    std::remove(linea.c_str());
+                    users.erase(users.begin() + (indice - 1));
+                    passwords.erase(passwords.begin() + (indice - 1));
+                    archivo2.open("perfiles.txt", std::ios::out | std::ios::trunc);
+                    for (j = 0; j < users.size(); j++) {
+                        users[j] = encriptar(users[j], 1);
+                        archivo2 << users[j] << '\n';
+                        archivo2 << passwords[j] << '\n';
+                    }
+                    archivo2.setstate(std::ios::goodbit);
+                    archivo2.close();
+                    users.clear();
+                    passwords.clear();
+                    std::cout << "\nSe ha eliminado correctamente el perfil. Volviendo al menu principal.\n";
+                    system("pause");
+                    return;
+                } else {
+                    std::cout << "\nLa contrasena ingresada no es correcta.\n";
+                    system("pause");
+                }
+            } else {
+                std::cout << "\nPor favor, elija un numero valido.\n";
+                system("pause");
+            }
+        } while (true);
+    }
 }
