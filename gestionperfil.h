@@ -20,8 +20,8 @@ void validar (int *n, int a = 0) {
 		} else {
 			std::cin.clear();
 			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-			std::cout << "\nEl número ingresado no debe contener decimales, letras ni otros caracteres especiales."
-			<< "\nPor favor ingrese un número según lo especificado: ";
+			std::cout << "\nEl numero ingresado no debe contener decimales, letras ni otros caracteres especiales."
+			<< "\nPor favor ingrese un numero segun lo especificado: ";
 		}
 	}
 	*n = temp;
@@ -36,8 +36,8 @@ void validar (double *p) {
 		} else {
 			std::cin.clear();
 			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-			std::cout << "\nEl número ingresado no debe contener letras ni otros caracteres especiales."
-			<< "\nPor favor ingrese un número según lo especificado: ";
+			std::cout << "\nEl numero ingresado no debe contener letras ni otros caracteres especiales."
+			<< "\nPor favor ingrese un numero segun lo especificado: ";
 		}
 	}
 	*p = temp;
@@ -251,14 +251,14 @@ void modificarperfil() {
         // seleccion de perfil a modificar
         std::cout << "\nIngrese el numero del perfil que desea modificar (ingrese -1 si no desea modificar un perfil): ";
         validar(&indice);
-        if (indice > 0 && indice <= j) {
+        if (indice > 0 && indice <= users.size()) {
             std::cout << "\nIngrese la contrasena del perfil: ";
             std::getline(std::cin >> std::ws, linea);
             if (linea.compare(encriptar(passwords[indice - 1], 2)) == 0) {
                 do {
                     system("cls");
                     std::cout << "(2) Modificar perfil\n"
-                    << '\n' << j - 1 << " - " << users[indice - 1] << '\n'
+                    << '\n' << indice << " - " << users[indice - 1] << '\n'
                     << "\nIndique la accion que desea realizar:\n"
                     << "(1) Modificar el nombre de usuario\n"
                     << "(2) Modificar la contrasena\n"
@@ -345,7 +345,7 @@ void modificarperfil() {
                     } else if (op == -1) {
                         return;
                     } else {
-                        std::cout << "\nDebe escoger una opcion válida (1, 2 o -1).\n";
+                        std::cout << "\nDebe escoger una opcion valida (1, 2 o -1).\n";
                         system("pause");
                     }
                 } while (true);
@@ -353,6 +353,11 @@ void modificarperfil() {
                 std::cout << "\nLa contrasena ingresada no es correcta.\n";
                 system("pause");
             }
+        } else if (indice == -1) {
+            return;
+        } else {
+            std::cout << "\nDebe escoger una opcion valida.\n";
+            system("pause");
         }
     } while (pase == false);
 }
@@ -370,7 +375,9 @@ std::string accederperfil () {
     tamano = archivo.tellg();
     archivo.seekg(0, std::ios::beg);
     if (tamano == 0) {
-            std::cout << "\nAun no se ha creado ningun perfil. Volviendo al menu principal\n";
+            system("cls");
+            std::cout << "(3) Acceder a perfil\n"
+            << "\nAun no se ha creado ningun perfil. Volviendo al menu principal.\n";
             archivo.clear();
             archivo.close();
             system("pause");
@@ -399,13 +406,13 @@ std::string accederperfil () {
             if (indice == -1) {
                 return "-1";
             } else if (indice > 0 && indice <= users.size()) {
-                std::cout << "\nIngrese la contrasena del perfil " << users[indice - 1] << ": ";
+                std::cout << "\nIngrese la contrasena del perfil " << users[indice - 1] << " (o -1 para volver al menu de acceso): ";
                 std::getline(std::cin >> std::ws, linea);
                 if (encriptar(linea, 1) == passwords[indice - 1]) {
                     std::cout << "\nAcceso correcto. Presentando menu de perfil.\n";
                     system("pause");
                     return encriptar(users[indice - 1], 1);
-                } else {
+                } else if (encriptar(linea, 1) == passwords[indice - 1] && linea != "-1") {
                     std::cout << "\nLa contrasena ingresada no es correcta.\n";
                     system("pause");
                 }
@@ -430,7 +437,9 @@ void eliminarperfil () {
     tamano = archivo.tellg();
     archivo.seekg(0, std::ios::beg);
     if (tamano == 0) {
-            std::cout << "\nAun no se ha creado ningun perfil. Volviendo al menu principal\n";
+            system("cls");
+            std::cout << "(4) Eliminar perfil\n"
+            << "\nAun no se ha creado ningun perfil. Volviendo al menu principal.\n";
             archivo.clear();
             archivo.close();
             system("pause");
@@ -458,7 +467,7 @@ void eliminarperfil () {
             if (indice == -1) {
                 return;
             } else if (indice > 0 && indice <= users.size()) {
-                std::cout << "\nIngrese la contrasena del perfil " << users[indice - 1] << ": ";
+                std::cout << "\nIngrese la contrasena del perfil " << users[indice - 1] << " (o -1 para volver al menu de eliminacion): ";
                 std::getline(std::cin >> std::ws, linea);
                 if (encriptar(linea, 1) == passwords[indice - 1]) {
                     linea = encriptar(users[indice - 1], 1) + ".csv";
@@ -478,7 +487,7 @@ void eliminarperfil () {
                     std::cout << "\nSe ha eliminado correctamente el perfil. Volviendo al menu principal.\n";
                     system("pause");
                     return;
-                } else {
+                } else if (encriptar(linea, 1) != passwords[indice - 1] && linea != "-1"){
                     std::cout << "\nLa contrasena ingresada no es correcta.\n";
                     system("pause");
                 }
