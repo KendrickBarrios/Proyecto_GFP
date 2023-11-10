@@ -7,7 +7,7 @@
 #include <string>
 #include <ctime>
 #include <sstream>
-#include <string>
+#include <iomanip>
 
 // Enumeracion para las categorias de operaciones
 enum Categoria {
@@ -56,25 +56,81 @@ std::string obtenerFechaTransaccion() {
     while (true) {
         std::cout << "Ingrese la fecha de la transacción (AAAA-MM-DD): ";
         std::cin >> fecha;
+
+        // Verificar la longitud de la fecha y asegurarse de que sea válida
         if (fecha.length() == 10) {
-            return fecha;
-        } else {
-            std::cout << "Formato de fecha incorrecto. Debe ser AAAA-MM-DD." << std::endl;
+            int year, month, day;
+            if (sscanf(fecha.c_str(), "%d-%d-%d", &year, &month, &day) == 3) {
+                if (year >= 1000 && year <= 9999 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                    break; // Fecha válida
+                }
+            }
         }
+
+        std::cout << "Formato de fecha inválido. Por favor, ingrese una fecha válida en el formato AAAA-MM-DD.\n";
+    }
+
+    return fecha;
+}
+
+// Función para cargar las categorías desde un archivo
+std::vector<std::string> cargarCategorias() {
+    std::vector<std::string> categorias;
+    std::fstream archivo;
+    archivo.open("categorias.txt", std::ios::in);
+    if (archivo.is_open()) {
+        std::string categoria;
+        while (std::getline(archivo, categoria)) {
+            categorias.push_back(categoria);
+        }
+        archivo.close();
+    } else {
+        std::cerr << "No se pudo abrir el archivo de categorías." << std::endl;
+    }
+    return categorias;
+}
+
+// Función para guardar las categorías en un archivo
+void guardarCategorias(const std::vector<std::string>& categorias) {
+    std::fstream archivo;
+    archivo.open("categorias.txt", std::ios::out);
+    if (archivo.is_open()) {
+        for (const std::string& categoria : categorias) {
+            archivo << categoria << "\n";
+        }
+        archivo.close();
+    } else {
+        std::cerr << "No se pudo abrir el archivo de categorías para guardar." << std::endl;
     }
 }
 
+// Funciones relacionadas con las categorías
 Categoria obtenerCategoria() {
+    std::vector<std::string> categorias = cargarCategorias();
+
     int opcion;
     do {
         std::cout << "Seleccione la categoria de la operación:\n";
-        std::cout << "1. Sueldo\n2. Ingresos Varios\n3. Productos Basicos\n4. Vestido y Calzado\n5. Vivienda y Servicios Basicos\n";
-        std::cout << "6. Salud\n7. Transporte\n8. Educación\n9. Ocio\n";
-        std::cout << "Opcion: ";
+        for (size_t i = 0; i < categorias.size(); ++i) {
+            std::cout << i + 1 << ". " << categorias[i] << "\n";
+        }
+        std::cout << "Opción: ";
         std::cin >> opcion;
-    } while (opcion < 1 || opcion > 9);
+    } while (opcion < 1 || opcion > static_cast<int>(categorias.size()));
 
     return static_cast<Categoria>(opcion - 1);
+}
+
+void agregarCategoria() {
+    std::vector<std::string> categorias = cargarCategorias();
+
+    std::string nuevaCategoria;
+    std::cout << "Ingrese el nombre de la nueva categoría: ";
+    std::cin >> nuevaCategoria;
+
+    categorias.push_back(nuevaCategoria);
+
+    guardarCategorias(categorias);
 }
 
 double obtenerMonto() {
@@ -144,10 +200,20 @@ std::vector<Operacion> cargarOperaciones(const std::string& perfil) {
 
 // Funcion para mostrar las operaciones de un usuario
 void mostrarOperaciones(const std::vector<Operacion>& operaciones) {
-    std::cout << "Codigo | Fecha de Registro | Fecha de Transacción | Categoría | Monto | Descripcion\n";
+    std::cout << std::setw(8) << std::left << "Codigo |"
+              << std::setw(20) << std::left << "Fecha de Registro |"
+              << std::setw(22) << std::left << "Fecha de Transacción |"
+              << std::setw(15) << std::left << "Categoría |"
+              << std::setw(10) << std::left << "Monto |"
+              << "Descripcion\n";
+
     for (const Operacion& operacion : operaciones) {
-        std::cout << operacion.codigo << " | " << operacion.fechaRegistro << " | " << operacion.fechaTransaccion << " | "
-                  << operacion.categoria << " | " << operacion.monto << " | " << operacion.descripcion << "\n";
+        std::cout << std::setw(8) << std::left << operacion.codigo << " | "
+                  << std::setw(20) << std::left << operacion.fechaRegistro << " | "
+                  << std::setw(22) << std::left << operacion.fechaTransaccion << " | "
+                  << std::setw(15) << std::left << operacion.categoria << " | "
+                  << std::setw(10) << std::left << operacion.monto << " | "
+                  << operacion.descripcion << "\n";
     }
 }
 
