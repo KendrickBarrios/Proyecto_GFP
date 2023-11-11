@@ -48,6 +48,8 @@
         "cstring": "cpp",
         "ctime": "cpp",
         "regex": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "optional": "cpp",
+        "iomanip": "cpp"
     }
 }
