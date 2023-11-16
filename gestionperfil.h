@@ -197,8 +197,18 @@ void crearperfil () {
     archivo.open(user, std::ios::out);
     if (archivo.is_open()) {
         user.erase(user.end() - 4, user.end());
+        archivo << "000000\n";
         archivo.clear();  
         archivo.close();      
+    }
+
+    // creacion del archivo de categorias
+    user += "categorias.txt";
+    archivo.open(user, std::ios::out);
+    if (archivo.is_open()) {
+        archivo << "Sueldo\nIngresos Varios\nProductos Basicos\nVestido y Calzado\nVivienda y Servicios Basicos\nSalud\nTransporte\nEducacion\nOcio\n";
+        archivo.clear();
+        archivo.close();
     }
     
     std::cout << "\nEl perfil ha sido creado correctamente. Volviendo al menu principal.\n";
@@ -412,7 +422,7 @@ std::string accederperfil () {
                     std::cout << "\nAcceso correcto. Presentando menu de perfil.\n";
                     system("pause");
                     return encriptar(users[indice - 1], 1);
-                } else if (encriptar(linea, 1) == passwords[indice - 1] && linea != "-1") {
+                } else if (encriptar(linea, 1) != passwords[indice - 1] && linea != "-1") {
                     std::cout << "\nLa contrasena ingresada no es correcta.\n";
                     system("pause");
                 }

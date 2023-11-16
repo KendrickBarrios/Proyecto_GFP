@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "gestionperfil.h"
+#include "RegistrosOperaciones.h"
 
 void menuperfil(std::string perfil);
 void menuprincipal();
@@ -40,8 +41,7 @@ void menuprincipal () {
             case 3:
                 perfil = accederperfil();
                 if (perfil != "-1") {
-                    menuperfil(perfil);
-                    // llamada a menu perfil
+                    menuperfil(perfil); // llamada a menu perfil
                 }
                 break;
             case 4:
@@ -61,38 +61,47 @@ void menuprincipal () {
 
 void menuperfil (std::string perfil) {
     int op;
-    std::string nombrearchivo = perfil + ".csv";
+    std::string nombrearchivo = perfil + ".csv", fecha;
     std::fstream archivo;
     do {
         system("cls");
         std::cout << "misBilletes - Gestor de Finanzas Personales\n"
         << "\nTe damos la bienvenida, " << encriptar(perfil, 2) << "\n\n"
         << "(1) Ingresar una operacion\n"
-        << "(2) Ver ultimas operaciones\n"
-        << "(3) Consultar balance\n"
-        << "(4) Comparar periodos\n"
-        << "(5) Ver reporte mensual\n"
-        << "(6) Salir del perfil\n\n"
+        << "(2) Modificar una operacion\n"
+        << "(3) Eliminar una operacion\n"
+        << "(4) Ver ultimas operaciones\n"
+        << "(5) Consultar balance\n"
+        << "(6) Comparar periodos\n"
+        << "(7) Ver reporte mensual\n"
+        << "(8) Salir del perfil\n\n"
         << "Indique la accion que desea realizar: ";
         validar(&op);
 
         switch (op) {
             case 1:
-                // llamada a funcion de registro de operacion
+                registrarOperacion(perfil, 1);
+                system("pause");
                 break;
             case 2:
-                // llamada a funcion de ver ultimas operaciones
+                registrarOperacion(perfil, 2);
                 break;
             case 3:
-                // llamada a consultar balance
+                registrarOperacion(perfil, 3);
                 break;
             case 4:
+                // llamada a funcion de ver ultimas operaciones
                 break;
             case 5:
+                // llamada a consultar balance
+                break;
+            case 6:
+                break;
+            case 7:
                 // llamada a comparar periodos
                 system("pause");
                 break;
-            case 6:
+            case 8:
                 return;
             default:
                 std::cout << "\nPor favor, elija una opcion valida (1-5).\n";
