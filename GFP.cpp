@@ -80,14 +80,12 @@ void menuperfil (std::string perfil) {
 
         switch (op) {
             case 1:
-                registrarOperacion(perfil, 1);
+                registrarOperacion(perfil);
                 system("pause");
                 break;
             case 2:
-                registrarOperacion(perfil, 2);
                 break;
             case 3:
-                registrarOperacion(perfil, 3);
                 break;
             case 4:
                 // llamada a funcion de ver ultimas operaciones
