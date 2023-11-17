@@ -254,40 +254,87 @@ std::vector<Operacion> cargarOperaciones(std::string perfil) {
     return operaciones;
 }
 
+bool compararFechas(std::string fecha1, std::string fecha2) {
+    int mes1 = std::stoi(fecha1.substr(3, 2));
+    int anio1 = std::stoi(fecha1.substr(6, 4));
+
+    int mes2 = std::stoi(fecha2.substr(3, 2));
+    int anio2 = std::stoi(fecha2.substr(6, 4));
+
+    return (anio1 < anio2) || (anio1 == anio2 && mes1 < mes2);
+}
+
 // Funcion para mostrar las operaciones de un usuario
 void mostrarOperaciones() {
-    int i, j = 0;
+    int i, j;
+    bool coincidencia;
     std::vector<std::string> periodos;
-    // for (i = 0; i < Operaciones.size(); i++) {
-    //     if (i == 0) {
-    //         periodos.push_back(Operaciones[i].fechaTransaccion.substr(3, 7));
-    //         j++;
-    //     } else {
-    //         if (Operaciones[i].fechaTransaccion.substr(3, 7) != periodos[j - 1]) {
-    //             periodos.push_back(Operaciones[i].fechaTransaccion.substr(3, 7));
-    //             j++;
-    //         }            
-    //     }
-    // }
-    std::cout << std::setw(8) << std::left << "|  Codigo "
+    for (i = 0; i < Operaciones.size(); i++) {
+        if (i == 0) {
+            periodos.push_back(Operaciones[i].fechaTransaccion.substr(3, 7));
+        } else {
+            coincidencia = false;
+            for (j = 0; j < Operaciones.size(); j++) {
+                if (Operaciones[i].fechaTransaccion.substr(3, 7) == periodos[j - 1]) {
+                    coincidencia = true;
+                    break;
+                }  
+            }
+            if (coincidencia == false) {
+                periodos.push_back(Operaciones[i].fechaTransaccion.substr(3, 7));
+            }          
+        }
+    }
+    std::sort(periodos.begin(), periodos.end(), compararFechas);
+    do {
+        system("cls");
+        std::cout << "\nPeriodos disponibles:\n";
+        for (i = 0; i < periodos.size(); i++) {
+            std::cout << i + 1 << periodos[i] << '\n';
+        }
+        std::cout << "\nIngrese el periodo que desea consultar (o -1 para volver al menu anterior): ";
+        validar(&j);
+        if (j == -1) {
+            return;
+        }
+    } while (j < 1 || j > periodos.size());
+    system("cls");
+    std::cout << "Periodo " << periodos[j - 1] << "\n\n"
+    << std::setw(8) << std::left << "|  Codigo "
     << std::setw(20) << std::left << " | Fecha de Registro"
     << std::setw(23) << std::left << " | Fecha de Transaccion"
     << std::setw(29) << std::left << " |          Categoria    "
     << std::setw(18) << std::left << " |      Monto     " << " | Descripcion\n";
 
     for (Operacion& operacion : Operaciones) {
-        std::cout << "|  " << std::setw(8) << std::left << operacion.codigo
-        << "| " << std::setw(17) << std::left << operacion.fechaRegistro
-        << " | " << std::setw(20) << std::left << operacion.fechaTransaccion
-        << " | " << std::setw(26) << std::left << operacion.categoria
-        << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << operacion.monto 
-        << "  | " << operacion.descripcion << "\n";
+        if (operacion.fechaTransaccion.substr(3, 7) == periodos[j - 1]) {
+            std::cout << "|  " << std::setw(8) << std::left << operacion.codigo
+            << "| " << std::setw(17) << std::left << operacion.fechaRegistro
+            << " | " << std::setw(20) << std::left << operacion.fechaTransaccion
+            << " | " << std::setw(26) << std::left << operacion.categoria
+            << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << operacion.monto 
+            << "  | " << operacion.descripcion << "\n";
+        }
     }
 }
 
-void registrarOperacion (std::string perfil, int modo) {
+void mensajeOperacion (Operacion nuevaop) {
+    std::cout << "                                         (1)                             (2)                        (3)                       (4)\n"
+        << std::setw(8) << std::left << "|  Codigo "
+        << std::setw(20) << std::left << " | Fecha de Registro"
+        << std::setw(23) << std::left << " | Fecha de Transaccion"
+        << std::setw(38) << std::left << " |              Categoria    "
+        << std::setw(18) << std::left << " |      Monto     " << " |           Descripcion\n"
+        << "|  " << std::setw(8) << std::left << nuevaop.codigo
+        << "| " << std::setw(17) << std::left << nuevaop.fechaRegistro
+        << " | " << std::setw(20) << std::left << nuevaop.fechaTransaccion
+        << " | " << std::setw(35) << std::left << nuevaop.categoria
+        << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << nuevaop.monto << "  | " << nuevaop.descripcion << "\n\n"
+        << "Seleccione el campo que desea modificar (5 para completar el registro, o -1 para volver al menu principal): ";
+}
+
+void registrarOperacion (std::string perfil) {
     int i, op, op2;
-    std::string titulos[] = {"(1) Ingresar una operacion\n\n", "(2) Modificar una operacion\n\n", "(3) Eliminar una operacion"};
     if (Operaciones.size() > 0) {
         Operaciones.clear();
     }
@@ -301,28 +348,12 @@ void registrarOperacion (std::string perfil, int modo) {
     Categorias = cargarCategorias(perfil);
     archivo.close();
     Operacion nuevaop;
-    if (modo == 1) {
-        nuevaop = {ultimoCodigo, fechaActual, "xx-xx-xxxx", "xxxxxxxxxx", 0, "xxxxxxxxxxxxxxxxxxxxxxxxxx"};
-    } else if (modo == 2 || modo == 3) {
-        if (Operaciones.size() > 0) {
-            mostrarOperaciones();
-        }
-    } 
-    while (modo == 1 || modo == 2) {
+    nuevaop = {ultimoCodigo, fechaActual, "xx-xx-xxxx", "xxxxxxxxxx", 0, "xxxxxxxxxxxxxxxxxxxxxxxxxx"};
+    while (true) {
         system("cls");
-        std::cout << titulos[modo]
-        << "                                         (1)                       (2)                      (3)         (4)\n"
-        << std::setw(8) << std::left << "|  Codigo "
-        << std::setw(20) << std::left << " | Fecha de Registro"
-        << std::setw(23) << std::left << " | Fecha de Transaccion"
-        << std::setw(29) << std::left << " |          Categoria    "
-        << std::setw(18) << std::left << " |      Monto     " << " | Descripcion\n"
-        << "|  " << std::setw(8) << std::left << nuevaop.codigo
-        << "| " << std::setw(17) << std::left << nuevaop.fechaRegistro
-        << " | " << std::setw(20) << std::left << nuevaop.fechaTransaccion
-        << " | " << std::setw(26) << std::left << nuevaop.categoria
-        << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << nuevaop.monto << "  | " << nuevaop.descripcion << "\n\n"
-        << "Seleccione el campo que desea modificar (5 para completar el registro, o -1 para volver al menu principal): ";
+        std::cout << std::setw(0) << std::setfill(' ');
+        std::cout << "(1) Ingresar una operacion\n\n";
+        mensajeOperacion(nuevaop);
         
         validar(&op);
         switch (op) {

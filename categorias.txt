@@ -2,8 +2,8 @@ Sueldo
 Ingresos Varios
 Productos Basicos
 Vestido y Calzado
-Vivienda y Servicios Basicos
+Servicios Basicos
 Salud
 Transporte
-Educación
+Educacion
 Ocio

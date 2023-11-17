@@ -419,7 +419,8 @@ std::string accederperfil () {
                 std::cout << "\nIngrese la contrasena del perfil " << users[indice - 1] << " (o -1 para volver al menu de acceso): ";
                 std::getline(std::cin >> std::ws, linea);
                 if (encriptar(linea, 1) == passwords[indice - 1]) {
-                    std::cout << "\nAcceso correcto. Presentando menu de perfil.\n";
+                    system("cls");
+                    std::cout << "(3) Acceder a perfil\n\nAcceso correcto. Presentando menu de perfil.\n";
                     system("pause");
                     return encriptar(users[indice - 1], 1);
                 } else if (encriptar(linea, 1) != passwords[indice - 1] && linea != "-1") {
@@ -437,7 +438,7 @@ std::string accederperfil () {
 void eliminarperfil () {
     std::fstream archivo, archivo2;
     std::streampos tamano;
-    std::string linea;
+    std::string linea, linea2;
     std::vector <std::string> users;
     std::vector <std::string> passwords;
     int i = 0, j, indice;
@@ -481,7 +482,9 @@ void eliminarperfil () {
                 std::getline(std::cin >> std::ws, linea);
                 if (encriptar(linea, 1) == passwords[indice - 1]) {
                     linea = encriptar(users[indice - 1], 1) + ".csv";
+                    linea2 = encriptar(users[indice - 1], 1) + "categorias.txt";
                     std::remove(linea.c_str());
+                    std::remove(linea2.c_str());
                     users.erase(users.begin() + (indice - 1));
                     passwords.erase(passwords.begin() + (indice - 1));
                     archivo2.open("perfiles.txt", std::ios::out | std::ios::trunc);
