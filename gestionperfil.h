@@ -206,7 +206,7 @@ void crearperfil () {
     user += "categorias.txt";
     archivo.open(user, std::ios::out);
     if (archivo.is_open()) {
-        archivo << "Sueldo\nIngresos Varios\nProductos Basicos\nVestido y Calzado\nVivienda y Servicios Basicos\nSalud\nTransporte\nEducacion\nOcio\n";
+        archivo << "SueldoI\nIngresos VariosI\nProductos BasicosE\nVestido y CalzadoE\nServicios BasicosE\nSaludE\nTransporteE\nEducacionE\nOcioE\n";
         archivo.clear();
         archivo.close();
     }
@@ -441,6 +441,7 @@ void eliminarperfil () {
     std::string linea, linea2;
     std::vector <std::string> users;
     std::vector <std::string> passwords;
+    char op;
     int i = 0, j, indice;
 
     archivo.open("perfiles.txt", std::ios::in);
@@ -481,6 +482,18 @@ void eliminarperfil () {
                 std::cout << "\nIngrese la contrasena del perfil " << users[indice - 1] << " (o -1 para volver al menu de eliminacion): ";
                 std::getline(std::cin >> std::ws, linea);
                 if (encriptar(linea, 1) == passwords[indice - 1]) {
+                    std::cout << "\nIngrese Y para confirmar la eliminacion, o N para cancelar: ";
+                    std::cin >> op;
+                    while (true) {
+                        if (op != 'y' && op != 'Y' && op != 'N' && op != 'n') {
+                            std::cout << "\nPor favor ingrese un caracter segun lo indicado: ";
+                            std::cin >> op;
+                        } else if (op == 'y' || op == 'Y') {
+                            break;
+                        } else {
+                            return;
+                        }
+                    }
                     linea = encriptar(users[indice - 1], 1) + ".csv";
                     linea2 = encriptar(users[indice - 1], 1) + "categorias.txt";
                     std::remove(linea.c_str());
