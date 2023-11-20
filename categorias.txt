@@ -1,9 +1,0 @@
-Sueldo
-Ingresos Varios
-Productos Basicos
-Vestido y Calzado
-Servicios Basicos
-Salud
-Transporte
-Educacion
-Ocio

@@ -84,8 +84,10 @@ void menuperfil (std::string perfil) {
                 system("pause");
                 break;
             case 2:
+                modificarOperacion(perfil, 1);
                 break;
             case 3:
+                modificarOperacion(perfil, 2);
                 break;
             case 4:
                 // llamada a funcion de ver ultimas operaciones

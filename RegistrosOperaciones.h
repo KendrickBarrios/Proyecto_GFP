@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <cctype>
 #include <ctime>
 #include <sstream>
 #include <iomanip>
@@ -13,6 +14,7 @@ std::regex patronfecha("^(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])-(\\d{4})$");
 
 // Vector para las categorias de operaciones
 std::vector <std::string> Categorias;
+std::vector<char> Tipos;
 
 // Nuevo codigo para la ultima operacion
 std::string ultimoCodigo;
@@ -23,6 +25,7 @@ struct Operacion {
     std::string fechaRegistro;
     std::string fechaTransaccion;
     std::string categoria;
+    char tipo;
     double monto;
     std::string descripcion;
 };
@@ -61,10 +64,15 @@ std::string obtenerFechaTransaccion() {
             fecha = obtenerFechaActual();
             return fecha;
         }
-        // Se obtiene el anio, mes y dia a partir del string fecha
+        // Se valida que la fecha tenga 10 caracteres y se obtiene el anio, mes y dia a partir del string
+        while (fecha.length() != 10) {
+            std::cout << "\nLa fecha ingresada no es valida, ingrese nuevamente la fecha: ";
+            std::getline(std::cin >> std::ws, fecha);
+        }
         dia = std::stoi(fecha.substr(0, 2));
         mes = std::stoi(fecha.substr(3, 2));
         anio = std::stoi(fecha.substr(6, 4));
+
 
         if (std::regex_match(fecha, patronfecha) && (anio >= 1900 && anio <= 2023)) {
             // Comprueba que la fecha ingresada sea valida
@@ -96,32 +104,32 @@ std::string obtenerFechaTransaccion() {
 }
 
 // Función para cargar las categorías desde un archivo
-std::vector<std::string> cargarCategorias(std::string perfil) {
-    std::vector<std::string> categorias;
+void cargarCategorias(std::string perfil, std::vector<std::string> &categorias, std::vector<char> &tipo) {
     std::fstream archivocat;
+    std::string categoria;
 
     archivocat.open(perfil + "categorias.txt", std::ios::in);
     if (archivocat.is_open()) {
-        std::string categoria;
         while (std::getline(archivocat, categoria)) {
             if (!categoria.empty()) {
-                categorias.push_back(categoria);
+                tipo.push_back(categoria.back()); // se almacena el ultimo caracter de cada categoria, que determina si es ingreso o egreso
+                categoria.pop_back(); // se elimina el ultimo caracter de la categoria (I / E)
+                categorias.push_back(categoria); // se almacena cada categoria en su vector correspondiente
             }
         }
         archivocat.close();
     } else {
         std::cerr << "No se pudo abrir el archivo de categorias." << '\n';
     }
-    return categorias;
 }
 
 // Función para guardar las categorías en un archivo
-void guardarCategorias(const std::vector<std::string>& categorias, std::string perfil) {
+void guardarCategorias(std::vector<std::string> &categorias, std::vector<char> &tipo, std::string perfil) {
     std::fstream archivo;
     archivo.open(perfil + "categorias.txt", std::ios::out);
     if (archivo.is_open()) {
         for (int i = 0; i < categorias.size(); i++) {
-            archivo << categorias[i] << "\n";
+            archivo << categorias[i] << tipo[i] << "\n";
         }
         archivo.close();
     } else {
@@ -132,9 +140,12 @@ void guardarCategorias(const std::vector<std::string>& categorias, std::string p
 bool agregarCategoria(std::string perfil);
 
 // Funciones relacionadas con las categorías
-std::string obtenerCategoria(std::string perfil) {
-    Categorias.clear();
-    Categorias = cargarCategorias(perfil);
+void obtenerCategoria(std::string perfil, Operacion *op) {
+    if (Categorias.size() > 0) {
+        Categorias.clear();
+        Tipos.clear();
+    }
+    cargarCategorias(perfil, Categorias, Tipos);
 
     int i, opcion;
     bool nuevacat;
@@ -155,15 +166,18 @@ std::string obtenerCategoria(std::string perfil) {
     } while (opcion < 1 || opcion > (Categorias.size() + 1));
 
     if ((opcion > 0 && opcion <= Categorias.size()) || (opcion == (Categorias.size() + 1) && nuevacat == true) ) {
-        return Categorias[opcion - 1];
+        op->categoria = Categorias[opcion - 1];
+        op->tipo = Tipos[opcion - 1];
+        return;
     } else if (opcion == (Categorias.size() + 1) && nuevacat == false) {
-        return "xxxxxxxxxx";
+        return;
     }
 }
 
 bool agregarCategoria(std::string perfil) {
     bool pase;
     int i;
+    char tipocat;
     std::string nuevaCategoria;
     do {
         pase = true;
@@ -178,10 +192,19 @@ bool agregarCategoria(std::string perfil) {
         if (nuevaCategoria == "-1") {
             return false;
         }
+        std::cout << "\nIndique el tipo de la nueva categoria:\nI - Ingreso\nE - Egreso\n";
+        std::cin >> tipocat;
+        if (tipocat != 'I' && tipocat != 'i' && tipocat != 'E' && tipocat != 'e') {
+            std::cout << "\nPor favor, seleccione un tipo valido para la categoria.\n";
+            pase = false;
+        } else {
+            tipocat = std::toupper(static_cast<unsigned char>(tipocat));
+        }
     } while (pase == false);
 
+    Tipos.push_back(tipocat);
     Categorias.push_back(nuevaCategoria);
-    guardarCategorias(Categorias, perfil);
+    guardarCategorias(Categorias, Tipos, perfil);
     return true;
 }
 
@@ -216,7 +239,7 @@ void guardarOperacion(std::string perfil) {
         archivo << ultimoCodigo << '\n';
         for (int i = 0; i < Operaciones.size(); i++) {
             archivo << Operaciones[i].codigo << "," << Operaciones[i].fechaRegistro << "," << Operaciones[i].fechaTransaccion << ","
-                << Operaciones[i].categoria << "," << Operaciones[i].monto << "," << Operaciones[i].descripcion << "\n";
+                << Operaciones[i].categoria << Operaciones[i].tipo << "," << Operaciones[i].monto << "," << Operaciones[i].descripcion << "\n";
         }
         archivo.close();
     } else {
@@ -230,6 +253,7 @@ std::vector<Operacion> cargarOperaciones(std::string perfil) {
     std::fstream archivo;
     std::string linea;
     std::string codigo, fechaRegistro, fechaTransaccion, categoria, montoStr, descripcion;
+    char tipo;
     double monto;
     archivo.open(perfil + ".csv", std::ios::in);
     if (archivo.is_open()) {
@@ -240,10 +264,12 @@ std::vector<Operacion> cargarOperaciones(std::string perfil) {
                 	std::getline(archivo, fechaRegistro, ',');
                 	std::getline(archivo, fechaTransaccion, ',');
                 	std::getline(archivo, categoria, ',');
+                    tipo = categoria.back();
+                    categoria.pop_back();
                 	std::getline(archivo, montoStr, ',');
                 	std::getline(archivo, descripcion);
                 	monto = std::stod(montoStr);
-                	operaciones.push_back({codigo, fechaRegistro, fechaTransaccion, categoria, monto, descripcion});
+                	operaciones.push_back({codigo, fechaRegistro, fechaTransaccion, categoria, tipo, monto, descripcion});
             	}
         	}
 		}
@@ -290,7 +316,7 @@ void mostrarOperaciones() {
         system("cls");
         std::cout << "\nPeriodos disponibles:\n";
         for (i = 0; i < periodos.size(); i++) {
-            std::cout << i + 1 << periodos[i] << '\n';
+            std::cout << i + 1 << " - " << periodos[i] << '\n';
         }
         std::cout << "\nIngrese el periodo que desea consultar (o -1 para volver al menu anterior): ";
         validar(&j);
@@ -303,52 +329,57 @@ void mostrarOperaciones() {
     << std::setw(8) << std::left << "|  Codigo "
     << std::setw(20) << std::left << " | Fecha de Registro"
     << std::setw(23) << std::left << " | Fecha de Transaccion"
-    << std::setw(29) << std::left << " |          Categoria    "
-    << std::setw(18) << std::left << " |      Monto     " << " | Descripcion\n";
+    << std::setw(38) << std::left << " |              Categoria    "
+    << std::setw(18) << std::left << " |      Monto     " << " |           Descripcion\n";
 
-    for (Operacion& operacion : Operaciones) {
+    for (Operacion operacion : Operaciones) {
         if (operacion.fechaTransaccion.substr(3, 7) == periodos[j - 1]) {
             std::cout << "|  " << std::setw(8) << std::left << operacion.codigo
-            << "| " << std::setw(17) << std::left << operacion.fechaRegistro
-            << " | " << std::setw(20) << std::left << operacion.fechaTransaccion
-            << " | " << std::setw(26) << std::left << operacion.categoria
-            << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << operacion.monto 
-            << "  | " << operacion.descripcion << "\n";
+        << "| " << std::setw(17) << std::left << operacion.fechaRegistro
+        << " | " << std::setw(20) << std::left << operacion.fechaTransaccion
+        << " | " << std::setw(35) << std::left << operacion.categoria
+        << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << operacion.monto << "  | " << operacion.descripcion << "\n";
         }
     }
 }
 
+// Funcion que presenta el menu para crear / modificar una operacion
 void mensajeOperacion (Operacion nuevaop) {
     std::cout << "                                         (1)                             (2)                        (3)                       (4)\n"
-        << std::setw(8) << std::left << "|  Codigo "
-        << std::setw(20) << std::left << " | Fecha de Registro"
-        << std::setw(23) << std::left << " | Fecha de Transaccion"
-        << std::setw(38) << std::left << " |              Categoria    "
-        << std::setw(18) << std::left << " |      Monto     " << " |           Descripcion\n"
-        << "|  " << std::setw(8) << std::left << nuevaop.codigo
-        << "| " << std::setw(17) << std::left << nuevaop.fechaRegistro
-        << " | " << std::setw(20) << std::left << nuevaop.fechaTransaccion
-        << " | " << std::setw(35) << std::left << nuevaop.categoria
-        << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << nuevaop.monto << "  | " << nuevaop.descripcion << "\n\n"
-        << "Seleccione el campo que desea modificar (5 para completar el registro, o -1 para volver al menu principal): ";
+    << std::setw(8) << std::left << "|  Codigo "
+    << std::setw(20) << std::left << " | Fecha de Registro"
+    << std::setw(23) << std::left << " | Fecha de Transaccion"
+    << std::setw(38) << std::left << " |              Categoria    "
+    << std::setw(18) << std::left << " |      Monto     " << " |           Descripcion\n"
+    << "|  " << std::setw(8) << std::left << nuevaop.codigo
+    << "| " << std::setw(17) << std::left << nuevaop.fechaRegistro
+    << " | " << std::setw(20) << std::left << nuevaop.fechaTransaccion
+    << " | " << std::setw(35) << std::left << nuevaop.categoria
+    << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << nuevaop.monto << "  | " << nuevaop.descripcion << "\n\n"
+    << "Seleccione el campo que desea modificar (5 para completar el registro, o -1 para volver al menu principal): ";
 }
 
+// Funcion para registrar operaciones y actualizar el CSV
 void registrarOperacion (std::string perfil) {
+    std::fstream archivo;
     int i, op, op2;
+    std::string linea, fechaActual = obtenerFechaActual();
+    Operacion nuevaop;
+    
     if (Operaciones.size() > 0) {
         Operaciones.clear();
+        Tipos.clear();
     }
     Operaciones = cargarOperaciones(perfil);
-    std::string linea, fechaActual = obtenerFechaActual();
-    std::fstream archivo;
     archivo.open(perfil + ".csv", std::ios::in);
     std::getline(archivo, ultimoCodigo);
     archivo.close();
-    if (Categorias.size() > 0) { Categorias.clear(); }
-    Categorias = cargarCategorias(perfil);
+    nuevaop = {ultimoCodigo, fechaActual, "xx-xx-xxxx", "xxxxxxxxxx", 'x', 0, "xxxxxxxxxxxxxxxxxxxxxxxxxx"};
+    if (Categorias.size() > 0) { 
+        Categorias.clear(); 
+    }
+    cargarCategorias(perfil, Categorias, Tipos);
     archivo.close();
-    Operacion nuevaop;
-    nuevaop = {ultimoCodigo, fechaActual, "xx-xx-xxxx", "xxxxxxxxxx", 0, "xxxxxxxxxxxxxxxxxxxxxxxxxx"};
     while (true) {
         system("cls");
         std::cout << std::setw(0) << std::setfill(' ');
@@ -361,7 +392,7 @@ void registrarOperacion (std::string perfil) {
                 nuevaop.fechaTransaccion = obtenerFechaTransaccion();
                 break;
             case 2:
-                nuevaop.categoria = obtenerCategoria(perfil);
+                obtenerCategoria(perfil, &nuevaop);
                 break;
             case 3:
                 nuevaop.monto = obtenerMonto();
@@ -386,6 +417,197 @@ void registrarOperacion (std::string perfil) {
                 return;
             default:
                 std::cout << "\nPor favor, ingrese una opcion valida (1-5, -1).\n";
+                system("pause");
+                break;
         }
     }
 }
+
+// funcion que completa con 0s el codigo ingresado
+std::string completarCodigo (std::string codigo) {
+    while (codigo.length() < 7) {
+        codigo = "0" + codigo;
+    }
+    return codigo;
+}
+
+// funcion que verifica que el codigo ingresado solo contiene numeros
+bool sonDigitos (std::string str) {
+    for (char c : str) {
+        if (!std::isdigit(static_cast<unsigned char>(c))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/*  funcion para modificar o eliminar operaciones, el modo indica la accion a realizar,
+    1 - modificar operacion, 2 - eliminar operacion */
+void modificarOperacion (std::string perfil, int modo) {
+    int i, j, op;
+    char op2;
+    bool valido, pase = false;
+    std::string codigo, titulos[] = {"(2) Modificar una operacion\n\n", "(3) Eliminar una operacion\n\n"};
+    if (Operaciones.size() > 0) {
+        Operaciones.clear();
+    }
+    Operaciones = cargarOperaciones(perfil);
+    if (Operaciones.size() == 0) {
+        std::cout << "\nAun no se ha registrado ninguna operacion, volviendo al menu principal.\n";
+        system("pause");
+        return;
+    }
+
+    do {
+        system("cls");
+        std::cout << titulos[modo - 1];
+        mostrarOperaciones();
+        switch (modo) {
+            case 1:
+                std::cout << "\nIngrese el codigo de la operacion que desea modificar (o -1 para volver al menu principal): ";
+                std::getline(std::cin >> std::ws, codigo);
+                if (codigo == "-1") {
+                    return;
+                }
+                if (codigo.length() < 7) {
+                    codigo = completarCodigo(codigo);
+                } else {
+                    std::cout << "\nEl codigo ingresado supera la longitud maxima permitida (7 caracteres).\n";
+                    system("pause");
+                    break;
+                }
+                valido = sonDigitos(codigo);
+                if (valido == true) {
+                    for (i = 0; i < Operaciones.size(); i++) {
+                        if (codigo == Operaciones[i].codigo) {
+                            break;
+                        }
+                    }
+                } else {
+                    std::cout << "\nEl codigo ingresado no debe contener letras, decimales ni otros caracteres especiales.\n";
+                    system("pause");
+                    break;
+                }
+                if (i == Operaciones.size()) {
+                    std::cout << "\nEl codigo ingresado no coincide con el de ninguna de las operaciones, por favor verifique.\n";
+                    break;
+                }
+                while (pase == false) {
+                    pase = false;
+                    system("cls");
+                    std::cout << std::setw(0) << std::setfill(' ');
+                    std::cout << titulos[modo - 1];
+                    mensajeOperacion(Operaciones[i]);
+        
+                    validar(&op);
+                    switch (op) {
+                        case 1:
+                            Operaciones[i].fechaTransaccion = obtenerFechaTransaccion();
+                            break;
+                        case 2:
+                            obtenerCategoria(perfil, &Operaciones[i]);
+                            break;
+                        case 3:
+                            Operaciones[i].monto = obtenerMonto();
+                            break;
+                        case 4:
+                            Operaciones[i].descripcion = obtenerDescripcion();
+                            break;
+                        case 5:
+                            ultimoCodigo = Operaciones[Operaciones.size() - 1].codigo;
+                            ultimoCodigo = generarCodigo();
+                            guardarOperacion(perfil);
+                            std::cout << "\nOperacion modificada con exito.\n\nIngrese Y para modificar otra operacion, o N para volver al menu principal: ";
+                            std::cin >> op2;
+                            while (true) {
+                                if (op2 != 'y' && op2 != 'Y' && op2 != 'N' && op2 != 'n') {
+                                    std::cout << "\nPor favor ingrese un caracter segun lo indicado: ";
+                                    std::cin >> op2;
+                                } else if (op2 == 'y' || op2 == 'Y') {
+                                    pase = true;
+                                    break;
+                                } else {
+                                    return;
+                                }
+                            }
+                            break;
+                        case -1:
+                            std::cout << "\nVolviendo al menu principal.\n";
+                            system("pause");
+                            return;
+                        default:
+                            std::cout << "\nPor favor, ingrese una opcion valida (1-5, -1).\n";
+                            system("pause");
+                            break;
+                    }
+                }
+                break;
+            case 2:
+                std::cout << "\nIngrese el codigo de la operacion que desea eliminar (o -1 para volver al menu principal): ";
+                std::getline(std::cin >> std::ws, codigo);
+                if (codigo == "-1") {
+                    return;
+                }
+                if (codigo.length() < 7) {
+                    codigo = completarCodigo(codigo);
+                } else {
+                    std::cout << "\nEl codigo ingresado supera la longitud maxima permitida (7 caracteres).\n";
+                    system("pause");
+                    break;
+                }
+                valido = sonDigitos(codigo);
+                if (valido == true) {
+                    for (i = 0; i < Operaciones.size(); i++) {
+                        if (codigo == Operaciones[i].codigo) {
+                            break;
+                        }
+                    }
+                } else {
+                    std::cout << "\nEl codigo ingresado no debe contener letras, decimales ni otros caracteres especiales.\n";
+                    system("pause");
+                    break;
+                }
+                if (i == Operaciones.size()) {
+                    std::cout << "\nEl codigo ingresado no coincide con el de ninguna de las operaciones, por favor verifique.\n";
+                    break;
+                }
+                while (pase == false) {
+                    std::cout << "\nIngrese Y para confirmar la eliminacion o N para cancelar: ";
+                    std::cin >> op2;
+                    if (op2 != 'y' && op2 != 'Y' && op2 != 'N' && op2 != 'n') {
+                        std::cout << "\nPor favor ingrese un caracter segun lo indicado: ";
+                        std::cin >> op2;
+                    } else if (op2 == 'y' || op2 == 'Y') {
+                        pase = true;
+                        if (i < (Operaciones.size() - 1)) {
+                            for (j = i; j < Operaciones.size(); j++) {
+                                codigo = Operaciones[j].codigo;
+                                Operaciones[j] = Operaciones[j + 1];
+                                Operaciones[j].codigo = codigo;
+                            }
+                        }
+                        Operaciones.pop_back();
+                        ultimoCodigo = Operaciones[Operaciones.size() - 1].codigo;
+                        ultimoCodigo = generarCodigo();
+                        guardarOperacion(perfil);
+                        std::cout << "\nOperacion eliminada con exito.\n\nIngrese Y para modificar otra operacion, o N para volver al menu principal: ";
+                        std::cin >> op2;
+                        while (true) {
+                            if (op2 != 'y' && op2 != 'Y' && op2 != 'N' && op2 != 'n') {
+                                std::cout << "\nPor favor ingrese un caracter segun lo indicado: ";
+                                std::cin >> op2;
+                            } else if (op2 == 'y' || op2 == 'Y') {
+                                pase = true;
+                                break;
+                            } else {
+                                return;
+                            }
+                        }
+                    } else {
+                        break;
+                    }
+                }
+        }
+    } while (true);
+}
+
