@@ -222,7 +222,7 @@ double obtenerMonto() {
 
 std::string obtenerDescripcion() {
     std::string descripcion;
-    std::cout << "Ingrese una descripcion (maximo 40 caracteres): ";
+    std::cout << "\nIngrese una descripcion (maximo 40 caracteres): ";
     std::cin.ignore();
     std::getline(std::cin, descripcion);
     if (descripcion.length() > 40) {
@@ -234,12 +234,14 @@ std::string obtenerDescripcion() {
 // Función para guardar una operación en un archivo CSV
 void guardarOperacion(std::string perfil) {
     std::fstream archivo;
-    archivo.open(perfil + ".csv", std::ios::out);
+    archivo.open(perfil + ".csv", std::ios::out | std::ios::trunc);
     if (archivo.is_open()) {
         archivo << ultimoCodigo << '\n';
-        for (int i = 0; i < Operaciones.size(); i++) {
-            archivo << Operaciones[i].codigo << "," << Operaciones[i].fechaRegistro << "," << Operaciones[i].fechaTransaccion << ","
+        if (!Operaciones.empty()) {
+            for (int i = 0; i < Operaciones.size(); i++) {
+                archivo << Operaciones[i].codigo << "," << Operaciones[i].fechaRegistro << "," << Operaciones[i].fechaTransaccion << ","
                 << Operaciones[i].categoria << Operaciones[i].tipo << "," << Operaciones[i].monto << "," << Operaciones[i].descripcion << "\n";
+            }
         }
         archivo.close();
     } else {
@@ -291,10 +293,15 @@ bool compararFechas(std::string fecha1, std::string fecha2) {
 }
 
 // Funcion para mostrar las operaciones de un usuario
-void mostrarOperaciones() {
+bool mostrarOperaciones() {
     int i, j;
     bool coincidencia;
     std::vector<std::string> periodos;
+    if (Operaciones.size() == 0) {
+        std::cout << "\nActualmente no existen operaciones en el registro. Volviendo al menu principal.\n";
+        system("pause");
+        return false;
+    }
     for (i = 0; i < Operaciones.size(); i++) {
         if (i == 0) {
             periodos.push_back(Operaciones[i].fechaTransaccion.substr(3, 7));
@@ -321,7 +328,10 @@ void mostrarOperaciones() {
         std::cout << "\nIngrese el periodo que desea consultar (o -1 para volver al menu anterior): ";
         validar(&j);
         if (j == -1) {
-            return;
+            return false;
+        } else if (j < 1 || j > periodos.size()) {
+            std::cout << "\nEl dato ingresado no corresponde a ningun periodo, por favor verifique.\n";
+            system("pause");
         }
     } while (j < 1 || j > periodos.size());
     system("cls");
@@ -340,6 +350,7 @@ void mostrarOperaciones() {
         << " | " << std::setw(35) << std::left << operacion.categoria
         << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << operacion.monto << "  | " << operacion.descripcion << "\n";
         }
+    return true;
     }
 }
 
@@ -356,7 +367,7 @@ void mensajeOperacion (Operacion nuevaop) {
     << " | " << std::setw(20) << std::left << nuevaop.fechaTransaccion
     << " | " << std::setw(35) << std::left << nuevaop.categoria
     << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << nuevaop.monto << "  | " << nuevaop.descripcion << "\n\n"
-    << "Seleccione el campo que desea modificar (5 para completar el registro, o -1 para volver al menu principal): ";
+    << "Seleccione el campo que desea ingresar (5 para completar el registro, o -1 para volver al menu principal): ";
 }
 
 // Funcion para registrar operaciones y actualizar el CSV
@@ -446,7 +457,7 @@ bool sonDigitos (std::string str) {
 void modificarOperacion (std::string perfil, int modo) {
     int i, j, op;
     char op2;
-    bool valido, pase = false;
+    bool valido, pase = false, seleccionper;
     std::string codigo, titulos[] = {"(2) Modificar una operacion\n\n", "(3) Eliminar una operacion\n\n"};
     if (Operaciones.size() > 0) {
         Operaciones.clear();
@@ -461,7 +472,10 @@ void modificarOperacion (std::string perfil, int modo) {
     do {
         system("cls");
         std::cout << titulos[modo - 1];
-        mostrarOperaciones();
+        seleccionper = mostrarOperaciones();
+        if (seleccionper == false) {
+            break;
+        }
         switch (modo) {
             case 1:
                 std::cout << "\nIngrese el codigo de la operacion que desea modificar (o -1 para volver al menu principal): ";
@@ -569,6 +583,7 @@ void modificarOperacion (std::string perfil, int modo) {
                 }
                 if (i == Operaciones.size()) {
                     std::cout << "\nEl codigo ingresado no coincide con el de ninguna de las operaciones, por favor verifique.\n";
+                    system("pause");
                     break;
                 }
                 while (pase == false) {
@@ -579,17 +594,23 @@ void modificarOperacion (std::string perfil, int modo) {
                         std::cin >> op2;
                     } else if (op2 == 'y' || op2 == 'Y') {
                         pase = true;
-                        if (i < (Operaciones.size() - 1)) {
-                            for (j = i; j < Operaciones.size(); j++) {
+                        if (Operaciones.size() == 1) {
+                            Operaciones.pop_back();
+                            ultimoCodigo = "0000000";
+                            guardarOperacion(perfil);
+                        } else {
+                            for (j = i; j < (Operaciones.size() - 1); j++) {
                                 codigo = Operaciones[j].codigo;
                                 Operaciones[j] = Operaciones[j + 1];
                                 Operaciones[j].codigo = codigo;
                             }
+                            Operaciones.pop_back();
+                            std::cout << "\nEl nuevo tamaño del vector Operaciones es: " << Operaciones.size() << '\n';
+                            ultimoCodigo = Operaciones[Operaciones.size() - 1].codigo;
+                            ultimoCodigo = generarCodigo();
+                            guardarOperacion(perfil);
                         }
-                        Operaciones.pop_back();
-                        ultimoCodigo = Operaciones[Operaciones.size() - 1].codigo;
-                        ultimoCodigo = generarCodigo();
-                        guardarOperacion(perfil);
+
                         std::cout << "\nOperacion eliminada con exito.\n\nIngrese Y para modificar otra operacion, o N para volver al menu principal: ";
                         std::cin >> op2;
                         while (true) {
@@ -607,7 +628,7 @@ void modificarOperacion (std::string perfil, int modo) {
                         break;
                     }
                 }
+                break;
         }
     } while (true);
 }
-

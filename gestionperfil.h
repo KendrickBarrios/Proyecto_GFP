@@ -197,7 +197,7 @@ void crearperfil () {
     archivo.open(user, std::ios::out);
     if (archivo.is_open()) {
         user.erase(user.end() - 4, user.end());
-        archivo << "000000\n";
+        archivo << "0000000\n";
         archivo.clear();  
         archivo.close();      
     }

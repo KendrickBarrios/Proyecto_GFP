@@ -70,7 +70,7 @@ void menuperfil (std::string perfil) {
         << "(1) Ingresar una operacion\n"
         << "(2) Modificar una operacion\n"
         << "(3) Eliminar una operacion\n"
-        << "(4) Ver ultimas operaciones\n"
+        << "(4) Mostrar operaciones\n"
         << "(5) Consultar balance\n"
         << "(6) Comparar periodos\n"
         << "(7) Ver reporte mensual\n"
