@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -283,11 +284,11 @@ std::vector<Operacion> cargarOperaciones(std::string perfil) {
 }
 
 bool compararFechas(std::string fecha1, std::string fecha2) {
-    int mes1 = std::stoi(fecha1.substr(3, 2));
-    int anio1 = std::stoi(fecha1.substr(6, 4));
+    int mes1 = std::stoi(fecha1.substr(0, 2));
+    int anio1 = std::stoi(fecha1.substr(3, 4));
 
-    int mes2 = std::stoi(fecha2.substr(3, 2));
-    int anio2 = std::stoi(fecha2.substr(6, 4));
+    int mes2 = std::stoi(fecha2.substr(0, 2));
+    int anio2 = std::stoi(fecha2.substr(3, 4));
 
     return (anio1 < anio2) || (anio1 == anio2 && mes1 < mes2);
 }
@@ -297,6 +298,7 @@ bool mostrarOperaciones() {
     int i, j;
     bool coincidencia;
     std::vector<std::string> periodos;
+    std::string periodo_op;
     if (Operaciones.size() == 0) {
         std::cout << "\nActualmente no existen operaciones en el registro. Volviendo al menu principal.\n";
         system("pause");
@@ -319,6 +321,7 @@ bool mostrarOperaciones() {
         }
     }
     std::sort(periodos.begin(), periodos.end(), compararFechas);
+    
     do {
         system("cls");
         std::cout << "\nPeriodos disponibles:\n";
@@ -334,24 +337,26 @@ bool mostrarOperaciones() {
             system("pause");
         }
     } while (j < 1 || j > periodos.size());
+    j--;
     system("cls");
-    std::cout << "Periodo " << periodos[j - 1] << "\n\n"
+    std::cout << "Periodo " << periodos[j] << "\n\n"
     << std::setw(8) << std::left << "|  Codigo "
     << std::setw(20) << std::left << " | Fecha de Registro"
     << std::setw(23) << std::left << " | Fecha de Transaccion"
     << std::setw(38) << std::left << " |              Categoria    "
     << std::setw(18) << std::left << " |      Monto     " << " |           Descripcion\n";
 
-    for (Operacion operacion : Operaciones) {
-        if (operacion.fechaTransaccion.substr(3, 7) == periodos[j - 1]) {
-            std::cout << "|  " << std::setw(8) << std::left << operacion.codigo
-        << "| " << std::setw(17) << std::left << operacion.fechaRegistro
-        << " | " << std::setw(20) << std::left << operacion.fechaTransaccion
-        << " | " << std::setw(35) << std::left << operacion.categoria
-        << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << operacion.monto << "  | " << operacion.descripcion << "\n";
+    for (i = 0; i < Operaciones.size(); i++) {
+        periodo_op = Operaciones[i].fechaTransaccion.substr(3, 7);
+        if (periodo_op.compare(periodos[j]) == 0) {
+            std::cout << "|  " << std::setw(8) << std::left << Operaciones[i].codigo
+        << "| " << std::setw(17) << std::left << Operaciones[i].fechaRegistro
+        << " | " << std::setw(20) << std::left << Operaciones[i].fechaTransaccion
+        << " | " << std::setw(35) << std::left << Operaciones[i].categoria
+        << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << Operaciones[i].monto << "  | " << Operaciones[i].descripcion << "\n";
         }
-    return true;
     }
+    return true;
 }
 
 // Funcion que presenta el menu para crear / modificar una operacion
@@ -457,19 +462,20 @@ bool sonDigitos (std::string str) {
 void modificarOperacion (std::string perfil, int modo) {
     int i, j, op;
     char op2;
-    bool valido, pase = false, seleccionper;
+    bool valido, pase, seleccionper;
     std::string codigo, titulos[] = {"(2) Modificar una operacion\n\n", "(3) Eliminar una operacion\n\n"};
-    if (Operaciones.size() > 0) {
-        Operaciones.clear();
-    }
-    Operaciones = cargarOperaciones(perfil);
-    if (Operaciones.size() == 0) {
-        std::cout << "\nAun no se ha registrado ninguna operacion, volviendo al menu principal.\n";
-        system("pause");
-        return;
-    }
 
     do {
+        pase = false;
+        if (Operaciones.size() > 0) {
+            Operaciones.clear();
+        }
+        Operaciones = cargarOperaciones(perfil);
+        if (Operaciones.size() == 0) {
+            std::cout << "\nAun no se ha registrado ninguna operacion, volviendo al menu principal.\n";
+            system("pause");
+            return;
+        }
         system("cls");
         std::cout << titulos[modo - 1];
         seleccionper = mostrarOperaciones();
