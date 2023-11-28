@@ -309,8 +309,8 @@ bool mostrarOperaciones() {
             periodos.push_back(Operaciones[i].fechaTransaccion.substr(3, 7));
         } else {
             coincidencia = false;
-            for (j = 0; j < Operaciones.size(); j++) {
-                if (Operaciones[i].fechaTransaccion.substr(3, 7) == periodos[j - 1]) {
+            for (j = 0; j < periodos.size(); j++) {
+                if (Operaciones[i].fechaTransaccion.substr(3, 7) == periodos[j]) {
                     coincidencia = true;
                     break;
                 }  
