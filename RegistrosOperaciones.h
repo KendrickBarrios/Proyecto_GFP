@@ -157,7 +157,7 @@ void obtenerCategoria(std::string perfil, Operacion *op) {
         }
         std::cout << Categorias.size() + 1 << ". Aniadir nueva categoria\n";
         std::cout << "Opcion: ";
-        validar(&opcion);
+        validar(&opcion, 0);
 
         if (opcion == (Categorias.size() + 1)) {
             nuevacat = agregarCategoria(perfil);
@@ -294,7 +294,7 @@ bool compararFechas(std::string fecha1, std::string fecha2) {
 }
 
 // Funcion para mostrar las operaciones de un usuario
-bool mostrarOperaciones() {
+std::string mostrarOperaciones() {
     int i, j;
     bool coincidencia;
     std::vector<std::string> periodos;
@@ -302,7 +302,7 @@ bool mostrarOperaciones() {
     if (Operaciones.size() == 0) {
         std::cout << "\nActualmente no existen operaciones en el registro. Volviendo al menu principal.\n";
         system("pause");
-        return false;
+        return "false";
     }
     for (i = 0; i < Operaciones.size(); i++) {
         if (i == 0) {
@@ -329,9 +329,9 @@ bool mostrarOperaciones() {
             std::cout << i + 1 << " - " << periodos[i] << '\n';
         }
         std::cout << "\nIngrese el periodo que desea consultar (o -1 para volver al menu anterior): ";
-        validar(&j);
+        validar(&j, 0);
         if (j == -1) {
-            return false;
+            return "false";
         } else if (j < 1 || j > periodos.size()) {
             std::cout << "\nEl dato ingresado no corresponde a ningun periodo, por favor verifique.\n";
             system("pause");
@@ -340,11 +340,13 @@ bool mostrarOperaciones() {
     j--;
     system("cls");
     std::cout << "Periodo " << periodos[j] << "\n\n"
+    << '+' << std::setw(150) << std::setfill('-') << std::right << '+' << std::setfill(' ') << '\n'
     << std::setw(8) << std::left << "|  Codigo "
     << std::setw(20) << std::left << " | Fecha de Registro"
     << std::setw(23) << std::left << " | Fecha de Transaccion"
     << std::setw(38) << std::left << " |              Categoria    "
-    << std::setw(18) << std::left << " |      Monto     " << " |           Descripcion\n";
+    << std::setw(18) << std::left << " |      Monto     " << " |           Descripcion                 |\n"
+    << '|' << std::setfill('-') << std::setw(11) << std::right << '+' << std::setw(20) << '+' << std::setw(23) << '+' << std::setw(38) << '+' << std::setw(18) << '+' << std::setw(40) << '|' << std::setfill(' ') << '\n';
 
     for (i = 0; i < Operaciones.size(); i++) {
         periodo_op = Operaciones[i].fechaTransaccion.substr(3, 7);
@@ -353,10 +355,11 @@ bool mostrarOperaciones() {
         << "| " << std::setw(17) << std::left << Operaciones[i].fechaRegistro
         << " | " << std::setw(20) << std::left << Operaciones[i].fechaTransaccion
         << " | " << std::setw(35) << std::left << Operaciones[i].categoria
-        << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << Operaciones[i].monto << "  | " << Operaciones[i].descripcion << "\n";
+        << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << std::right << Operaciones[i].monto << "  | " << std::setw(37) << std::left << Operaciones[i].descripcion << " |\n";
         }
     }
-    return true;
+    std::cout << '+' << std::setw(150) << std::setfill('-') << std::right << '+' << std::left << std::setfill(' ') << '\n';
+    return periodos[j];
 }
 
 // Funcion que presenta el menu para crear / modificar una operacion
@@ -402,7 +405,7 @@ void registrarOperacion (std::string perfil) {
         std::cout << "(1) Ingresar una operacion\n\n";
         mensajeOperacion(nuevaop);
         
-        validar(&op);
+        validar(&op, 0);
         switch (op) {
             case 1:
                 nuevaop.fechaTransaccion = obtenerFechaTransaccion();
@@ -462,8 +465,8 @@ bool sonDigitos (std::string str) {
 void modificarOperacion (std::string perfil, int modo) {
     int i, j, op;
     char op2;
-    bool valido, pase, seleccionper;
-    std::string codigo, titulos[] = {"(2) Modificar una operacion\n\n", "(3) Eliminar una operacion\n\n"};
+    bool valido, pase;
+    std::string codigo, periodo, titulos[] = {"(2) Modificar una operacion\n\n", "(3) Eliminar una operacion\n\n"};
 
     do {
         pase = false;
@@ -478,8 +481,8 @@ void modificarOperacion (std::string perfil, int modo) {
         }
         system("cls");
         std::cout << titulos[modo - 1];
-        seleccionper = mostrarOperaciones();
-        if (seleccionper == false) {
+        periodo = mostrarOperaciones();
+        if (periodo == "false") {
             break;
         }
         switch (modo) {
@@ -519,7 +522,7 @@ void modificarOperacion (std::string perfil, int modo) {
                     std::cout << titulos[modo - 1];
                     mensajeOperacion(Operaciones[i]);
         
-                    validar(&op);
+                    validar(&op, 0);
                     switch (op) {
                         case 1:
                             Operaciones[i].fechaTransaccion = obtenerFechaTransaccion();

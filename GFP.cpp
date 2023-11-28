@@ -6,6 +6,7 @@
 #include <vector>
 #include "gestionperfil.h"
 #include "RegistrosOperaciones.h"
+#include "Resultados.h"
 
 void menuperfil(std::string perfil);
 void menuprincipal();
@@ -29,7 +30,7 @@ void menuprincipal () {
         << "(4) Eliminar un perfil\n"
         << "(5) Salir de la aplicacion\n\n"
         << "Indique la accion que desea realizar: ";
-        validar(&op);
+        validar(&op, 0);
 
         switch (op) {
             case 1:
@@ -60,9 +61,11 @@ void menuprincipal () {
 }
 
 void menuperfil (std::string perfil) {
-    int op;
-    std::string nombrearchivo = perfil + ".csv", fecha;
+    int op, op2;
+    double balance;
+    std::string nombrearchivo = perfil + ".csv", fecha, periodo;
     std::fstream archivo;
+    bool v;
     do {
         system("cls");
         std::cout << "misBilletes - Gestor de Finanzas Personales\n"
@@ -90,10 +93,37 @@ void menuperfil (std::string perfil) {
                 modificarOperacion(perfil, 2);
                 break;
             case 4:
-                // llamada a funcion de ver ultimas operaciones
+            	if (Operaciones.size() > 0) {
+            		Operaciones.clear();
+				}
+				Operaciones = cargarOperaciones(perfil);
+                periodo = mostrarOperaciones();
+                system("pause");
                 break;
             case 5:
-                // llamada a consultar balance
+                v = false;
+                do {
+                	system("cls");
+                	std::cout << "(5) Consultar balances\n\n"
+                	<< "1. Consultar balance por periodo\n"
+                	<< "2. Consultar balance de un periodo por categorias\n"
+                	<< "\nIndique la accion que desea realizar (o -1 para volver al menu principal): ";
+                	validar(&op2, 0);
+                    if (op2 == -1) {
+                        v = true;
+                    } else if (op2 == 1) {
+                        balance = calcularBalance(perfil, 1);
+                        system("pause");
+                        v = true;
+                    } else if (op2 == 2) {
+                        balance = calcularBalance(perfil, 2);
+                        system("pause");
+                        v = true;
+                    } else {
+                        std::cout << "El numero ingresado no corresponde a ninguna opcion, por favor verifique.\n";
+                        system("pause");
+                    }
+				} while (v == false);
                 break;
             case 6:
                 break;
