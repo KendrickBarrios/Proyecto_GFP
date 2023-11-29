@@ -347,7 +347,6 @@ void modificarperfil() {
                                 users.clear();
                                 passwords.clear();
                                 std::cout << "\nContrasena modificada con exito. Volviendo al menu principal\n";
-                                std::cout << pase << '\n';
                                 system("pause");
                                 break;
                             }

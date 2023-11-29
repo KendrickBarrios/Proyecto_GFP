@@ -62,7 +62,7 @@ void menuprincipal () {
 
 void menuperfil (std::string perfil) {
     int op, op2;
-    double balance;
+    std::vector<double> balance;
     std::string nombrearchivo = perfil + ".csv", fecha, periodo;
     std::fstream archivo;
     bool v;
@@ -120,15 +120,20 @@ void menuperfil (std::string perfil) {
                         system("pause");
                         v = true;
                     } else {
-                        std::cout << "El numero ingresado no corresponde a ninguna opcion, por favor verifique.\n";
+                        std::cout << "\nEl numero ingresado no corresponde a ninguna opcion, por favor verifique.\n";
                         system("pause");
                     }
 				} while (v == false);
                 break;
             case 6:
+                // llamada a comparar periodos
                 break;
             case 7:
-                // llamada a comparar periodos
+                system("cls");
+                balance = calcularBalance(perfil, 1);
+                std::cout << "\n\n"; 
+                graficoBarras(balance);
+                std::cout << "\n\n";
                 system("pause");
                 break;
             case 8:
