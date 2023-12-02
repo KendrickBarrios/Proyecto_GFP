@@ -132,7 +132,9 @@ void menuperfil (std::string perfil) {
                 system("cls");
                 balance = calcularBalance(perfil, 1);
                 std::cout << "\n\n"; 
-                graficoBarras(balance);
+                if (!balance.empty()) {
+                    graficoBarras(balance);
+                }
                 std::cout << "\n\n";
                 system("pause");
                 break;

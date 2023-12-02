@@ -9,6 +9,11 @@
 #include <sstream>
 #include <iomanip>
 #include <regex>
+#include <locale.h>
+
+#define ANSI_COLOR_RESET   "\033[0m"
+#define ANSI_COLOR_GREEN   "\033[32m"
+#define ANSI_COLOR_RED     "\033[31m"
 
 // expresion regular que valida que el formato de la fecha ingresada sea DD-MM-AAAA
 std::regex patronfecha("^(0[1-9]|[1-2][0-9]|3[0-1])-(0[1-9]|1[0-2])-(\\d{4})$");
@@ -223,11 +228,11 @@ double obtenerMonto() {
 
 std::string obtenerDescripcion() {
     std::string descripcion;
-    std::cout << "\nIngrese una descripcion (maximo 40 caracteres): ";
+    std::cout << "\nIngrese una descripcion (maximo 35 caracteres): ";
     std::cin.ignore();
     std::getline(std::cin, descripcion);
-    if (descripcion.length() > 40) {
-        descripcion = descripcion.substr(0, 40);
+    if (descripcion.length() > 35) {
+        descripcion = descripcion.substr(0, 35);
     }
     return descripcion;
 }
@@ -252,27 +257,36 @@ void guardarOperacion(std::string perfil) {
 
 // Funcion para cargar las operaciones desde un archivo CSV
 std::vector<Operacion> cargarOperaciones(std::string perfil) {
+    std::locale::global(std::locale("C"));
     std::vector<Operacion> operaciones;
     std::fstream archivo;
     std::string linea;
     std::string codigo, fechaRegistro, fechaTransaccion, categoria, montoStr, descripcion;
     char tipo;
     double monto;
+    Operacion o;
     archivo.open(perfil + ".csv", std::ios::in);
     if (archivo.is_open()) {
         std::getline(archivo, linea, '\n');
         if (!archivo.eof()) {
         	while (std::getline(archivo, codigo, ',')) {
-        		if (!linea.empty()) {
+        		if (!codigo.empty()) {
+                    o.codigo = codigo;
                 	std::getline(archivo, fechaRegistro, ',');
+                    o.fechaRegistro = fechaRegistro;
                 	std::getline(archivo, fechaTransaccion, ',');
+                    o.fechaTransaccion = fechaTransaccion;
                 	std::getline(archivo, categoria, ',');
                     tipo = categoria.back();
+                    o.tipo = tipo;
                     categoria.pop_back();
+                    o.categoria = categoria;
                 	std::getline(archivo, montoStr, ',');
-                	std::getline(archivo, descripcion);
                 	monto = std::stod(montoStr);
-                	operaciones.push_back({codigo, fechaRegistro, fechaTransaccion, categoria, tipo, monto, descripcion});
+                    o.monto = monto;
+                	std::getline(archivo, descripcion);
+                    o.descripcion = descripcion;
+                	operaciones.push_back(o);
             	}
         	}
 		}
@@ -353,9 +367,21 @@ std::string mostrarOperaciones() {
         if (periodo_op.compare(periodos[j]) == 0) {
             std::cout << "|  " << std::setw(8) << std::left << Operaciones[i].codigo
         << "| " << std::setw(17) << std::left << Operaciones[i].fechaRegistro
-        << " | " << std::setw(20) << std::left << Operaciones[i].fechaTransaccion
-        << " | " << std::setw(35) << std::left << Operaciones[i].categoria
-        << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << std::right << Operaciones[i].monto << "  | " << std::setw(37) << std::left << Operaciones[i].descripcion << " |\n";
+        << " | " << std::setw(20) << std::left << Operaciones[i].fechaTransaccion << " | ";
+        if (Operaciones[i].tipo == 'I') {
+            std::cout << ANSI_COLOR_GREEN;
+        } else {
+            std::cout << ANSI_COLOR_RED;
+        }
+        std::cout << std::setw(35) << std::left << Operaciones[i].categoria 
+        << ANSI_COLOR_RESET << " |  ";
+        if (Operaciones[i].tipo == 'I') {
+            std::cout << ANSI_COLOR_GREEN;
+        } else {
+            std::cout << ANSI_COLOR_RED;
+        }
+        std::cout << std::setw(13) << std::left << std::setprecision(2) << std::fixed << std::right << Operaciones[i].monto
+        << ANSI_COLOR_RESET << "  | "  << std::setw(37) << std::left << Operaciones[i].descripcion << " |\n";
         }
     }
     std::cout << '+' << std::setw(150) << std::setfill('-') << std::right << '+' << std::left << std::setfill(' ') << '\n';
@@ -374,7 +400,7 @@ void mensajeOperacion (Operacion nuevaop) {
     << "| " << std::setw(17) << std::left << nuevaop.fechaRegistro
     << " | " << std::setw(20) << std::left << nuevaop.fechaTransaccion
     << " | " << std::setw(35) << std::left << nuevaop.categoria
-    << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << nuevaop.monto << "  | " << nuevaop.descripcion << "\n\n"
+    << " |  " << std::setw(13) << std::right << std::setprecision(2) << std::fixed << nuevaop.monto << "  | " << std::left << nuevaop.descripcion << "\n\n"
     << "Seleccione el campo que desea ingresar (5 para completar el registro, o -1 para volver al menu principal): ";
 }
 

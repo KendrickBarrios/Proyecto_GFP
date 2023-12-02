@@ -64,8 +64,21 @@ std::vector<double> calcularBalance (std::string perfil, int modo) {
                 std::cout << "|  " << std::setw(8) << std::left << Operaciones[i].codigo
                 << "| " << std::setw(17) << std::left << Operaciones[i].fechaRegistro
                 << " | " << std::setw(20) << std::left << Operaciones[i].fechaTransaccion
-                << " | " << std::setw(35) << std::left << Operaciones[i].categoria
-                << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << std::right << Operaciones[i].monto << "  | " << std::setw(37) << std::left << Operaciones[i].descripcion << " |\n";
+                << " | ";
+                if (Operaciones[i].tipo == 'I') {
+                    std::cout << ANSI_COLOR_GREEN;
+                } else {
+                    std::cout << ANSI_COLOR_RED;
+                }
+                std::cout << std::setw(35) << std::left << Operaciones[i].categoria
+                << ANSI_COLOR_RESET << " |  ";
+                if (Operaciones[i].tipo == 'I') {
+                    std::cout << ANSI_COLOR_GREEN;
+                } else {
+                    std::cout << ANSI_COLOR_RED;
+                }
+                std::cout << std::setw(13) << std::setprecision(2) << std::fixed << std::right << Operaciones[i].monto 
+                << ANSI_COLOR_RESET << "  | " << std::setw(37) << std::left << Operaciones[i].descripcion << " |\n";
                 for (j = 0; j < Categorias.size(); j++) {
                     if (Operaciones[i].categoria == Categorias[j]) {
                         if (Tipos[j] == 'I') {
@@ -79,8 +92,14 @@ std::vector<double> calcularBalance (std::string perfil, int modo) {
             }
         }
         std::cout << '|' << std::setfill('-') << std::setw(11) << std::right << '+' << std::setw(81) << '+' << std::setw(18) << '+' << std::setw(40) << '+' << std::setfill(' ') << '\n'
-        << std::left << "|  Balance |" << std::setw(83) << std::setfill(' ') << std::right << "|  " << std::setw(13) << std::setprecision(2) << std::fixed << std::right << balanceTotal << "  |\n"
-		<< '+' << std::setw(111) << std::setfill('-') << std::right << "+\n" << std::left << std::setfill(' ');
+        << std::left << "|  Balance |" << std::setw(83) << std::setfill(' ') << std::right << "|  ";
+        if (balanceTotal < 0) {
+            std::cout << ANSI_COLOR_RED;
+        } else {
+            std::cout << ANSI_COLOR_GREEN;
+        }
+        std::cout << std::setw(13) << std::setprecision(2) << std::fixed << std::right << balanceTotal 
+        << ANSI_COLOR_RESET << "  |\n" << '+' << std::setw(111) << std::setfill('-') << std::right << "+\n" << std::left << std::setfill(' ');
         return balance;
         
 	} else if (modo == 2) {
@@ -109,12 +128,29 @@ std::vector<double> calcularBalance (std::string perfil, int modo) {
             } else {
                 balanceTotal -= totales[i];
             }
-            std::cout << "| " << std::setw(35) << std::left << Categorias[i]
-            << " |  " << std::setw(13) << std::left << std::setprecision(2) << std::fixed << std::right << totales[i] << "  | \n";
+            std::cout << "| ";
+            if (Tipos[i] == 'I') {
+                std::cout << ANSI_COLOR_GREEN;
+            } else {
+                std::cout << ANSI_COLOR_RED;
+            }
+            std::cout << std::setw(35) << std::left << Categorias[i] << ANSI_COLOR_RESET << " |  ";
+            if (Tipos[i] == 'I') {
+                std::cout << ANSI_COLOR_GREEN;
+            } else {
+                std::cout << ANSI_COLOR_RED;
+            }
+            std::cout << std::setw(13) << std::left << std::setprecision(2) << std::fixed << std::right << totales[i] 
+            << ANSI_COLOR_RESET << "  | \n";
         }
         std::cout << '|' << std::setw(38) << std::setfill('-') << std::right << '+' << std::setw(18) << '|' << std::setfill(' ') << std::left << '\n'
-        << std::setw(39) << std::left << "|               Balance               |"
-        << std::setw(15) << std::right << balanceTotal << "  |\n"
+        << std::setw(39) << std::left << "|               Balance               |";
+        if (balanceTotal < 0) {
+            std::cout << ANSI_COLOR_RED;
+        } else {
+            std::cout << ANSI_COLOR_GREEN;
+        }
+        std::cout << std::setw(15) << std::right << balanceTotal << ANSI_COLOR_RESET << "  |\n"
         << '+' << std::setw(56) << std::setfill('-') << '+' << std::setfill(' ') << std::left << '\n';
         return balance;
 	}
@@ -134,11 +170,21 @@ void graficoBarras (std::vector<double> &balance) {
     std::cout << "Grafico\n\n";
     for (i = 0; i < balance.size(); i++) {
         largo = int(balance[i] * escala);
-        std::cout << std::setw(25) << std::left << Categorias[i] << " | ";
+        if (Tipos[i] == 'I') {
+            std::cout << ANSI_COLOR_GREEN;
+        } else {
+            std::cout << ANSI_COLOR_RED;
+        }
+        std::cout << std::setw(25) << std::left << Categorias[i] << ANSI_COLOR_RESET << " | ";
+        if (Tipos[i] == 'I') {
+            std::cout << ANSI_COLOR_GREEN;
+        } else {
+            std::cout << ANSI_COLOR_RED;
+        }
         for (j = 0; j < largo; j++) {
             std::cout << '=';
         }
-        std::cout << '\n' << std::setw(27) << std::setfill(' ') << std::right << '|' << std::left << '\n';
+        std::cout << ANSI_COLOR_RESET << '\n' << std::setw(27) << std::setfill(' ') << std::right << '|' << std::left << '\n';
     }
     i = int(max * escala);
     std::cout << std::setw(27) << std::setfill(' ') << std::right << '|'
