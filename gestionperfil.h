@@ -6,6 +6,7 @@
 #include <string>
 #include <regex>
 #include <vector>
+#include <conio.h>
 
 // expresiones regulares que especifican los caracteres permitidos en el nombre de usuario y contrasena
 std::regex patronUser("^[a-zA-Z0-9_]+$"); 
@@ -96,6 +97,23 @@ std::string encriptar (std::string str, int modo) {
     return cripto;
 }
 
+// funcion que oculta la contraseña al momento de escribirla
+void ocultarContrasena(std::string& password) {
+    password = ""; // Clear the password string
+
+    char ch;
+    while ((ch = _getch()) != 13) {  // lee caracteres hasta que el usuario presione Enter
+        if (ch == 8 && !password.empty()) {  // elimina el ultimo caracter si se presiona Backspace
+            std::cout << "\b \b";  // retrocede el cursor, imprime un espacio y vuelve a avanzar el cursor
+            password.pop_back();
+        } else if (ch != 8) {
+            std::cout << '*'; // imprime un * por cada caracter ingresado
+            password += ch; // es añade el caracter al string password
+        }
+    }
+    std::cout << '\n';
+}
+
 // funcion que permite validar el nombre de usuario ingresado
 int validarUser (std::string user) {
     std::fstream archivo;
@@ -174,9 +192,9 @@ void crearperfil () {
         if (std::regex_match(user, patronUser) && coincidencia != 0) {
              std::cout << "\nLa contrasena puede incluir simbolos (no puede incluir espacios).\n"
             << "\nIngrese la contrasena: ";
-            std::getline(std::cin >> std::ws, password);
+            ocultarContrasena(password);
             std::cout << "\nIngrese nuevamente la contrasena: ";
-            std::getline(std::cin >> std::ws, password2);
+            ocultarContrasena(password2);
             validarPassword (password, password2, &pase);
         }
 
@@ -263,7 +281,7 @@ void modificarperfil() {
         validar(&indice);
         if (indice > 0 && indice <= users.size()) {
             std::cout << "\nIngrese la contrasena del perfil: ";
-            std::getline(std::cin >> std::ws, linea);
+            ocultarContrasena(linea);
             if (linea.compare(encriptar(passwords[indice - 1], 2)) == 0) {
                 do {
                     system("cls");
@@ -326,12 +344,12 @@ void modificarperfil() {
                         
                     } else if (op == 2) { // modificacion de contrasena
                         std::cout << "\nIngrese la nueva contrasena (o -1 para volver al menu de modificacion): ";
-                        std::getline(std::cin >> std::ws, password);
+                        ocultarContrasena(password);
                         if (password == "-1") {
                             break;
                         } else {
                             std::cout << "\nConfirme la nueva contrasena: ";
-                            std::getline(std::cin >> std::ws, linea);
+                            ocultarContrasena(linea);
                             validarPassword(password, linea, &pase);
                             if (pase == true) {
                                 // actualizacion del archivo de perfiles
@@ -416,7 +434,7 @@ std::string accederperfil () {
                 return "-1";
             } else if (indice > 0 && indice <= users.size()) {
                 std::cout << "\nIngrese la contrasena del perfil " << users[indice - 1] << " (o -1 para volver al menu de acceso): ";
-                std::getline(std::cin >> std::ws, linea);
+                ocultarContrasena(linea);
                 if (encriptar(linea, 1) == passwords[indice - 1]) {
                     system("cls");
                     std::cout << "(3) Acceder a perfil\n\nAcceso correcto. Presentando menu de perfil.\n";
@@ -479,7 +497,7 @@ void eliminarperfil () {
                 return;
             } else if (indice > 0 && indice <= users.size()) {
                 std::cout << "\nIngrese la contrasena del perfil " << users[indice - 1] << " (o -1 para volver al menu de eliminacion): ";
-                std::getline(std::cin >> std::ws, linea);
+                ocultarContrasena(linea);
                 if (encriptar(linea, 1) == passwords[indice - 1]) {
                     std::cout << "\nIngrese Y para confirmar la eliminacion, o N para cancelar: ";
                     std::cin >> op;
