@@ -308,7 +308,7 @@ bool compararFechas(std::string fecha1, std::string fecha2) {
 }
 
 // Funcion para mostrar las operaciones de un usuario
-std::string mostrarOperaciones() {
+std::string mostrarOperaciones(bool omitir) {
     int i, j;
     bool coincidencia;
     std::vector<std::string> periodos;
@@ -342,7 +342,7 @@ std::string mostrarOperaciones() {
         for (i = 0; i < periodos.size(); i++) {
             std::cout << i + 1 << " - " << periodos[i] << '\n';
         }
-        std::cout << "\nIngrese el periodo que desea consultar (o -1 para volver al menu anterior): ";
+        std::cout << "\nIngrese el numero del periodo que desea consultar (o -1 para volver al menu anterior): ";
         validar(&j, 0);
         if (j == -1) {
             return "false";
@@ -353,6 +353,9 @@ std::string mostrarOperaciones() {
     } while (j < 1 || j > periodos.size());
     j--;
     system("cls");
+    if (omitir == true) {
+    	return periodos[j];
+	}
     std::cout << "Periodo " << periodos[j] << "\n\n"
     << '+' << std::setw(150) << std::setfill('-') << std::right << '+' << std::setfill(' ') << '\n'
     << std::setw(8) << std::left << "|  Codigo "
@@ -507,7 +510,7 @@ void modificarOperacion (std::string perfil, int modo) {
         }
         system("cls");
         std::cout << titulos[modo - 1];
-        periodo = mostrarOperaciones();
+        periodo = mostrarOperaciones(false);
         if (periodo == "false") {
             break;
         }

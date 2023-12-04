@@ -97,7 +97,7 @@ void menuperfil (std::string perfil) {
             		Operaciones.clear();
 				}
 				Operaciones = cargarOperaciones(perfil);
-                periodo = mostrarOperaciones();
+                periodo = mostrarOperaciones(false);
                 system("pause");
                 break;
             case 5:
@@ -112,11 +112,11 @@ void menuperfil (std::string perfil) {
                     if (op2 == -1) {
                         v = true;
                     } else if (op2 == 1) {
-                        balance = calcularBalance(perfil, 1);
+                        balance = calcularBalance(perfil, 1, false);
                         system("pause");
                         v = true;
                     } else if (op2 == 2) {
-                        balance = calcularBalance(perfil, 2);
+                        balance = calcularBalance(perfil, 2, false);
                         system("pause");
                         v = true;
                     } else {
@@ -126,11 +126,13 @@ void menuperfil (std::string perfil) {
 				} while (v == false);
                 break;
             case 6:
-                // llamada a comparar periodos
+                compararPeriodos(perfil);
+                std::cout << "\n\n";
+                system("pause");
                 break;
             case 7:
                 system("cls");
-                balance = calcularBalance(perfil, 1);
+                balance = calcularBalance(perfil, 1, false);
                 std::cout << "\n\n"; 
                 if (!balance.empty()) {
                     graficoBarras(balance);
